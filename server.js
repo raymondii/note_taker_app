@@ -1,95 +1,71 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const shortid = require("shortid");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3333;
 
-// Middleware to handle JSON data
+// Middleware for parsing JSON in the request body
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Database file path
-const dbFilePath = path.join(__dirname, 'db.json');
+// Serve static files from the public directory
+app.use(express.static("public"));
 
-// Serve static files (HTML, CSS, JS, etc.)
-app.use(express.static('public'));
+// API Routes
 
-// HTML routes
-app.get('/notes', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Develop', 'public', 'notes.html'));
+// Read notes from the db.json file
+app.get("/api/notes", (req, res) => {
+  const notes = getNotes();
+  res.json(notes);
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Develop', 'public', 'index.html'));
-});
-
-// API routes
-app.get('/api/notes', (req, res) => {
-  // Read the notes from the db.json file and return as JSON
-  fs.readFile(dbFilePath, 'utf8', (err, data) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    const notes = JSON.parse(data);
-    res.json(notes);
-  });
-});
-
-app.post('/api/notes', (req, res) => {
+// Save a new note to the db.json file
+app.post("/api/notes", (req, res) => {
   const newNote = req.body;
+  newNote.id = shortid.generate();
 
-  // Read existing notes from the db.json file
-  fs.readFile(dbFilePath, 'utf8', (err, data) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
+  const notes = getNotes();
+  notes.push(newNote);
 
-    const notes = JSON.parse(data);
+  saveNotes(notes);
 
-    // Give each note a unique id
-    newNote.id = Date.now().toString();
-
-    // Add the new note to the existing notes
-    notes.push(newNote);
-
-    // Write the updated notes back to the db.json file
-    fs.writeFile(dbFilePath, JSON.stringify(notes), (writeErr) => {
-      if (writeErr) {
-        res.status(500).json({ error: writeErr.message });
-        return;
-      }
-      res.json(newNote);
-    });
-  });
+  res.json(newNote);
 });
 
-app.delete('/api/notes/:id', (req, res) => {
+// Delete a note from the db.json file
+app.delete("/api/notes/:id", (req, res) => {
   const noteId = req.params.id;
 
-  // Read existing notes from the db.json file
-  fs.readFile(dbFilePath, 'utf8', (err, data) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
+  let notes = getNotes();
+  notes = notes.filter((note) => note.id !== noteId);
 
-    const notes = JSON.parse(data);
+  saveNotes(notes);
 
-    // Remove the note with the given id
-    const updatedNotes = notes.filter((note) => note.id !== noteId);
-
-    // Write the updated notes back to the db.json file
-    fs.writeFile(dbFilePath, JSON.stringify(updatedNotes), (writeErr) => {
-      if (writeErr) {
-        res.status(500).json({ error: writeErr.message });
-        return;
-      }
-      res.json({ success: true, message: 'Note deleted successfully' });
-    });
-  });
+  res.json({ success: true });
 });
+
+// HTML Routes
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "Develop", "public", "index.html"));
+});
+
+app.get("/notes", (req, res) => {
+  res.sendFile(path.join(__dirname, "Develop", "public", "notes.html"));
+});
+
+// Helper functions
+
+function getNotes() {
+  const data = fs.readFileSync(path.join(__dirname, "Develop", "db", "db.json"), "utf-8");
+  return JSON.parse(data) || [];
+}
+
+function saveNotes(notes) {
+  fs.writeFileSync(path.join(__dirname, "Develop", "db", "db.json"), JSON.stringify(notes, null, 2), "utf-8");
+}
 
 // Start the server
 app.listen(PORT, () => {
