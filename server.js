@@ -11,18 +11,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the public directory
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // API Routes
 
 // Read notes from the db.json file
-app.get("/api/notes", (req, res) => {
+app.get('/api/notes', (req, res) => {
   const notes = getNotes();
   res.json(notes);
 });
 
 // Save a new note to the db.json file
-app.post("/api/notes", (req, res) => {
+app.post('/api/notes', (req, res) => {
   const newNote = req.body;
   newNote.id = shortid.generate();
 
@@ -35,7 +35,7 @@ app.post("/api/notes", (req, res) => {
 });
 
 // Delete a note from the db.json file
-app.delete("/api/notes/:id", (req, res) => {
+app.delete('/api/notes/:id', (req, res) => {
   const noteId = req.params.id;
 
   let notes = getNotes();
@@ -48,23 +48,23 @@ app.delete("/api/notes/:id", (req, res) => {
 
 // HTML Routes
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "Develop", "public", "index.html"));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Develop', 'public', 'index.html'));
 });
 
-app.get("/notes", (req, res) => {
-  res.sendFile(path.join(__dirname, "Develop", "public", "notes.html"));
+app.get('/notes', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Develop', 'public', 'notes.html'));
 });
 
 // Helper functions
 
 function getNotes() {
-  const data = fs.readFileSync(path.join(__dirname, "Develop", "db", "db.json"), "utf-8");
+  const data = fs.readFileSync(path.join(__dirname, 'Develop', 'db', 'db.json'), 'utf-8');
   return JSON.parse(data) || [];
 }
 
 function saveNotes(notes) {
-  fs.writeFileSync(path.join(__dirname, "Develop", "db", "db.json"), JSON.stringify(notes, null, 2), "utf-8");
+  fs.writeFileSync(path.join(__dirname, 'Develop', 'db', 'db.json'), JSON.stringify(notes, null, 2), 'utf-8');
 }
 
 // Start the server
