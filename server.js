@@ -49,22 +49,22 @@ app.delete('/api/notes/:id', (req, res) => {
 // HTML Routes
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Develop', 'public', 'index.html'));
+  res.sendFile(path.join(__dirname,'public', 'index.html'));
 });
 
 app.get('/notes', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Develop', 'public', 'notes.html'));
+  res.sendFile(path.join(__dirname,'public', 'notes.html'));
 });
 
 // Helper functions
 
 function getNotes() {
-  const data = fs.readFileSync(path.join(__dirname, 'Develop', 'db', 'db.json'), 'utf-8');
+  const data = fs.readFileSync(path.join(__dirname,'db', 'db.json'), 'utf-8');
   return JSON.parse(data) || [];
 }
 
 function saveNotes(notes) {
-  fs.writeFileSync(path.join(__dirname, 'Develop', 'db', 'db.json'), JSON.stringify(notes, null, 2), 'utf-8');
+  fs.writeFileSync(path.join(__dirname,'db', 'db.json'), JSON.stringify(notes, null, 2), 'utf-8');
 }
 
 // Start the server
